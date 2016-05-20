@@ -14,7 +14,7 @@ defmodule Absinthe.Plug.GraphiQL do
   require EEx
   @graphiql_version "0.7.1"
   EEx.function_from_file :defp, :graphiql_html, Path.join(__DIR__, "graphiql.html.eex"),
-    [:graphiql_version, :query_string, :variables_string, :result_string]
+    [:graphiql_version, :query_string, :variables_string, :result_string, :operation_name_string]
 
 
   @behaviour Plug
@@ -47,10 +47,14 @@ defmodule Absinthe.Plug.GraphiQL do
     {:ok, doc} <- Absinthe.parse(input),
     :ok <- validate_http_method(conn, doc),
     {:ok, result} <- Absinthe.run(doc, config.schema_mod, opts) do
-      {:ok, result, opts.variables, input}
+      {:ok, result, opts.variables, input, opts.operation_name}
     end
     |> case do
-      {:ok, result, variables, query} ->
+      {:ok, result, variables, query, operation_name} ->
+        operation_name = operation_name
+        |> Poison.encode!(pretty: true)
+        |> js_escape
+
         query = query |> js_escape
 
         var_string = variables
@@ -61,7 +65,7 @@ defmodule Absinthe.Plug.GraphiQL do
         |> Poison.encode!(pretty: true)
         |> js_escape
 
-        html = graphiql_html(@graphiql_version, query, var_string, result)
+        html = graphiql_html(@graphiql_version, query, var_string, result, operation_name)
         conn
         |> put_resp_content_type("text/html")
         |> send_resp(200, html)

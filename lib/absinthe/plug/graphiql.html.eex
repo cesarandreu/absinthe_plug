@@ -83,6 +83,10 @@ add "&raw" to the end of the URL within a browser.
       parameters.variables = newVariables;
       updateURL();
     }
+    function onEditOperationName(newOperationName) {
+      parameters.operationName = newOperationName;
+      updateURL();
+    }
     function updateURL() {
       history.replaceState(null, null, locationQuery(parameters));
     }
@@ -92,9 +96,11 @@ add "&raw" to the end of the URL within a browser.
         fetcher: graphQLFetcher,
         onEditQuery: onEditQuery,
         onEditVariables: onEditVariables,
+        onEditOperationName: onEditOperationName,
         query: '<%= query_string %>',
         response: '<%= result_string %>',
         variables: '<%= variables_string %>',
+        operationName: '<%= operation_name_string %>',
       }),
       document.body
     );
